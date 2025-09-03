@@ -1,68 +1,131 @@
-# Intel AMX Detection
 
-This is an application that detects the support of Intel AMX in the processor and enablement by the operating system.  This sample does not show how to use Intel AMX instructions or enable applications to use Intel AMX.
+<p align="center">
+  <img src="https://github.com/intel/optimized-cloud-recipes/blob/main/images/logo-classicblue-800px.png?raw=true" alt="Intel Logo" width="250"/>
+</p>
 
-## License
-BSD Zero Clause License
+# Intel® AMX Validation for Linux and Windows 
 
-Copyright (C) 2025 Intel Corporation
+© Copyright 2025, Intel Corporation
 
-Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted.
+## Overview
+This Python script detects the presence of Intel AMX features on your CPU as well as OS by using the cpuid instruction to query processor capabilities on Linux and Windows.
 
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. 
-IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
-WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+AMX (Advanced Matrix Extensions) is a set of instructions introduced in Intel's 4th Generation Xeon Scalable processors ("Sapphire Rapids") that significantly accelerates AI workloads, deep learning, and matrix multiplication operations.
+
+The CPUID instruction is a processor supplementary instruction allowing software to discover details of the processor. By examining the CPUID output and checking the relevant bits, you can determine if the CPU supports certain instruction sets or features. The cpuid -1 command queries the CPU's feature set. When AMX is enabled, it should show a specific bit set in the ECX register. It checks for three specific AMX features:
+ 
+- **AMX-TILE:** The tile architecture foundation. <br />
+- **AMX-BF16:** Support for BFloat16 operations. <br />
+- **AMX-INT8:** Support for 8-bit integer operations.
 
 
-## Source List
-### OS-Agnostic Files
- - **amx_detection.h** - This is the common header file included across all soruce files for sharing structures and shared functions.
- - **amx_detection.c** - The OS Agnostic entry point for this example which will determine Intel AMX support.
+## How the Script Works 
+This script detects AMX (Advanced Matrix Extensions) support by working with a companion executable (amx_detection) and analyzing its output. Here's how it works:
+### AMX Enablement in the CPU
+For CPU support detection:
 
-### OS-Dependent Files
+The script runs an external program called **amx_detection** which queries CPU information via CPUID instruction.
+It parses the output looking for specific CPU feature flags:
 
-The following files are the OS-Dependent APIs which only need to be included for the specific OS.
+CPUID.07H.00H:EDX[22] indicates AMX-BF16 support. <br />
+CPUID.07H.00H:EDX[24] indicates AMX-TILE support. <br />
+CPUID.07H.00H:EDX[25] indicates AMX-INT8 support. <br />
+### AMX Enablement in the OS
+For OS detection:
 
- - **amx_os_linux.c** - The OS-Dependent APIs for Linux.
- - **amx_os_windows.c** - The OS-Dependent APIs for Windows.
+The script uses XGETBV instruction to read XCR0 register which is a control register that indicates which processor states the operating system is configured to manage using the XSAVE feature set. 
 
-## How to Compile
+The OS detection is done in the **amx_os_windows.c** and **amx_os_linux.c** files where it provides platform-specific implementations for detecting CPU features, specifically related to Intel's AMX technology.
+The main functionality of these files:
 
+1. **Reading CPU Information:** Both files implement functions to read CPUID information, which allows the software to query what features the CPU supports. <br />
+2. **Reading Extended Control Registers:** The code uses XGETBV instruction to read the XCR0 register, which indicates which state components are enabled by the operating system. <br />
+3. **Platform-Specific Implementations:** The implementation differs between Windows and Linux:
+
+Windows uses intrinsic functions (__cpuidex and __xgetbv) while
+Linux uses inline assembly to directly execute the CPUID and XGETBV instructions.
+
+The Linux version also includes syscall definitions for requesting permission to use certain CPU extended features, which is needed for AMX functionality.
+
+
+### Why Check for AMX Support?
+AMX can provide significant performance improvements for:
+
+- Machine learning applications
+- AI inference workloads
+- Scientific computing
+- Applications using matrix operations
+
+Detecting AMX support helps determine if your system can benefit from AMX-optimized software and libraries like Intel's oneAPI, PyTorch with Intel extensions, or TensorFlow with oneDNN.
+
+## Prerequistes
 ### Linux
+- Python 3.6 or higher
 
-You may use any compiler for linux that you wish to use.  The following example shows how to compile the sources for GCC using the command line.
-
-```
-    gcc -g -c -Wall  amx_os_linux.c
-    gcc -g  amx_detection.c -Wall -o ./amxdetection.o amx_os_linux.o 
-```
 
 ### Windows
+- Python 3.6 or higher
+- Microsoft Visual Studio 2022 <br />
+Once Visual Studio is installed click on the Tools tab and navigate to the "Get Tools and Features" section. Ensure that the following settings are selected and then select install while downloading in the bottom right. 
+    <br/>![alt text](./images/image-3.png) 
 
-You are free to use any compiler you need to use for Windows OS.  The following example shows how to compile the sources using the Microsoft compiler from the command line.
+
+## Usage
+### Linux 
+1. Launch an instance on desired platform and SSH into instance
+2. Download and store amx-detect-linux.py, amx_os_linux.c, amx_detection.c, amx_detection.h in Downloads folder
+
+3. Compile both amx_os_linux.c and amx_detection.c together
+```bash
+gcc -o amx_detection amx_detection.c amx_os_linux.c
 ```
-    cl /c amx_detection.c amx_os_windows.c /IF:\WDK\Win7\inc\crt /Ox
-    link amx_os_windows.obj amx_detection.obj /nodefaultlib F:\WDK\Win7\lib\win7\amd64\kernel32.lib F:\WDK\Win7\lib\crt\amd64\msvcrt.lib  /out:amxdetection.exe
+4. Compiling these files should output the executable amx_detection to the Downloads folder
+5. Run the script
+```bash
+python3 amx-detect-linux.py
+```
+### Expected Output 
+If AMX is enabled on the CPU and OS the script should output the following
+![alt text](./images/image-6.png)
+
+
+**Note:** The following command can be used to query specific CPU feature information after installing cpuid:
+
+```bash
+sudo apt install cpuid
+```
+```bash
+cpuid -l 7 -s 0
 ```
 
-### Other Operating Systems
+-l 7: Specifies CPUID leaf 7, which contains information about extended features
+-s 0: Specifies sub-leaf 0 of leaf 7
 
-This project can easily be moved to another OS that supports a standard C runtime compiler.  The following APIs would need to be implemented for OS-Specific implemenation and compiled into the sources.
+Leaf 7, sub-leaf 0 contains information about various CPU extensions including AVX-512, AMX, and other advanced features. The script parses this output to detect AMX-specific capabilities. This particular leaf/sub-leaf combination is used because Intel placed AMX feature flags in this location of the CPUID instruction output.
+You can manually run this command to see the raw CPUID information that the script parses:
 
- - **void Os_Platform_Read_Cpuid(unsigned int leaf, unsigned int Subleaf, PCPUID_REGISTERS pCpuidRegisters)**
-
- -- This implementation requests to execute the CPUID x86 instruction, it is in the OS-Specific section more for being a compiler-specific assembly/intrinsic implementation.
-
- - **void Os_Platform_Read_xgetbv(unsigned int EcxValue, long long int *pXCR0)**
-
- -- This implementation requests to execute the XGETBV x86 instruction, it is in the OS-Specific section more for being a compiler-specific assembly/intrinsic implementation.
-
-## How to use the application
-
-      
+![alt text](./images/image-2.png)
 
 
 
+### Windows
+1. Launch Windows instance and RDP into instance
+2. Download and store amx-detect-windows.py, amx_detection.c, amx_detection.h, and amx_os_windows.c to Downloads folder
+3. Open Microsoft Visual Studio and navigate to the downloads directory
+4. Compile the source files by running the following command 
+```bash
+cl amx_detection.c amx_os_windows.c
+``` 
+5. Once finished compiling, an amx_detection.exe file should be outputted to the downloads folder. Exit out of visual studio
+7. Open command prompt and navigate to the Downloads directory
+8. Run the script by running 
+```bash
+py amx-detext-windows.py
+```
+### Expected Output
+If AMX is enabled on the CPU and OS the script should output the following
 
+![alt text](./images/image-7.png)
 
-
+## More Information
+For more information regarding AMX and AMX specific implementation please visit the following developer guide: https://www.intel.com/content/www/us/en/content-details/671488/intel-64-and-ia-32-architectures-optimization-reference-manual-volume-1.html
