@@ -73,13 +73,17 @@ Once Visual Studio is installed click on the Tools tab and navigate to the "Get 
 ## Usage
 ### Linux 
 1. Launch an instance on desired platform and SSH into instance
-2. Download and store amx-detect-linux.py, amx_os_linux.c, amx_detection.c, amx_detection.h in Downloads folder
+2. Clone the repository to get the required files: amx-detect-linux.py, amx_os_linux.c, amx_detection.c, amx_detection.h
+```bash
+git clone https://github.com/intel/Intel-AMX-Detection.git
+cd Intel-AMX-Detection
+```
 
 3. Compile both amx_os_linux.c and amx_detection.c together
 ```bash
 gcc -o amx_detection amx_detection.c amx_os_linux.c
 ```
-4. Compiling these files should output the executable amx_detection to the Downloads folder
+4. Compiling these files should output the executable amx_detection to the current directory
 5. Run the script
 ```bash
 python3 amx-detect-linux.py
@@ -87,25 +91,6 @@ python3 amx-detect-linux.py
 ### Expected Output 
 If AMX is enabled on the CPU and OS the script should output the following
 ![alt text](./images/image-6.png)
-
-
-**Note:** The following command can be used to query specific CPU feature information after installing cpuid:
-
-```bash
-sudo apt install cpuid
-```
-```bash
-cpuid -l 7 -s 0
-```
-
--l 7: Specifies CPUID leaf 7, which contains information about extended features
--s 0: Specifies sub-leaf 0 of leaf 7
-
-Leaf 7, sub-leaf 0 contains information about various CPU extensions including AVX-512, AMX, and other advanced features. The script parses this output to detect AMX-specific capabilities. This particular leaf/sub-leaf combination is used because Intel placed AMX feature flags in this location of the CPUID instruction output.
-You can manually run this command to see the raw CPUID information that the script parses:
-
-![alt text](./images/image-2.png)
-
 
 
 ### Windows
@@ -126,6 +111,15 @@ py amx-detext-windows.py
 If AMX is enabled on the CPU and OS the script should output the following
 
 ![alt text](./images/image-7.png)
+
+## License
+BSD Zero Clause License
+
+Copyright (C) 2025 Intel Corporation
+
+Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ## More Information
 For more information regarding AMX and AMX specific implementation please visit the following developer guide: https://www.intel.com/content/www/us/en/content-details/671488/intel-64-and-ia-32-architectures-optimization-reference-manual-volume-1.html
