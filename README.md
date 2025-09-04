@@ -95,14 +95,20 @@ If AMX is enabled on the CPU and OS the script should output the following
 
 ### Windows
 1. Launch Windows instance and RDP into instance
-2. Download and store amx-detect-windows.py, amx_detection.c, amx_detection.h, and amx_os_windows.c to Downloads folder
-3. Open Microsoft Visual Studio and navigate to the downloads directory
+2. Clone repository to get required files: amx-detect-windows.py, amx_detection.c, amx_detection.h, and amx_os_windows.c 
+
+```bash
+git clone https://github.com/intel/Intel-AMX-Detection.git
+cd Intel-AMX-Detection
+```
+
+3. Open Microsoft Visual Studio and navigate to the current directory
 4. Compile the source files by running the following command 
 ```bash
 cl amx_detection.c amx_os_windows.c
 ``` 
-5. Once finished compiling, an amx_detection.exe file should be outputted to the downloads folder. Exit out of visual studio
-7. Open command prompt and navigate to the Downloads directory
+5. Once finished compiling, an amx_detection.exe file should be outputted to the repository folder. Exit out of visual studio
+7. Open command prompt and navigate to the current directory
 8. Run the script by running 
 ```bash
 py amx-detext-windows.py
