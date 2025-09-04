@@ -111,7 +111,7 @@ cl amx_detection.c amx_os_windows.c
 7. Open command prompt and navigate to the current directory
 8. Run the script by running 
 ```bash
-py amx-detext-windows.py
+py amx-detect-windows.py
 ```
 ### Expected Output
 If AMX is enabled on the CPU and OS the script should output the following

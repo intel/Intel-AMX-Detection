@@ -34,7 +34,7 @@ def check_amx_support(output):
         'amx_bf16'    : False,
         'amx_tile'    : False,
         'amx_int8'    : False,
-	'amx_state' : False
+        'amx_state'   : False
     }
     
     # Look for AMX-related strings in the output
